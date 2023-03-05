@@ -1,0 +1,12 @@
+int A;
+int B;
+
+A = 10;
+B = A + 5;
+
+se (B >= 15) entao
+    escreva A + B;
+senao
+    escreva "B é menor que 15.";
+fimse
+
