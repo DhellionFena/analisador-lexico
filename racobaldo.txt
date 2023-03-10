@@ -1,8 +1,10 @@
-int A;
-int B;
+numerico A;
+numerico B;
+caracter i;
+vetor lista;
 
 A = 10;
-B = A + 5;
+B = A+5;
 
 se (B >= 15) entao
     escreva A + B;
@@ -10,3 +12,8 @@ senao
     escreva "B é menor que 15.";
 fimse
 
+para cada i em lista faca
+
+    escreva "oi";
+
+fimpara
