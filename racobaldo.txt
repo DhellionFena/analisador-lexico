@@ -1,15 +1,15 @@
-numerico A;
-numerico B;
+numerico _A;
+numerico _B;
 caracter i;
 vetor lista;
 
-A = 10;
-B = A+5;
+_A = 10;
+_B = _A+5;
 
-se (B >= 15) entao
-    escreva A + B;
+se (_B >= 15) entao
+    escreva _A + _B;
 senao
-    escreva "B é menor que 15.";
+    escreva "_B eh menor que 15.";
 fimse
 
 para cada i em lista faca

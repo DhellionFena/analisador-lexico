@@ -1,4 +1,5 @@
 from tipos import tipos
+import re
 
 def getAlgoritmo(nome_do_arquivo):
     with open(nome_do_arquivo, 'r', encoding='utf-8') as arq:
@@ -38,6 +39,30 @@ def get_simbolo(tabela_de_simbolos, simbolo):
             return (s[0], s[1])
     return None
 
+def gerar_fluxo_lexico(fluxo):
+    arq = open("fluxo_lexico.txt", "w")
+
+    for item in fluxo:
+        arq.write(f"({item[0]},{item[1]})\n")
+    
+    arq.close()
+
+def gerar_tabela_de_simbolos(tabela):
+    arq = open("tabela_de_simbolos.csv", "w")
+
+    arq.write("nome;chave\n")
+    for item in tabela:
+        arq.write(f"{item[0]};{item[1]}\n")
+    
+    arq.close()
+
+def verificar_variavel(palavra):
+    padrao_de_rotulo = r'^[a-z_][A-Za-z]*[0-9]?$'
+    if re.match(padrao_de_rotulo, palavra):
+        return True
+    else:
+        return False
+
 def analizador_lexico(texto):
     fluxo_codigo = []
     tabela_de_simbolos = []
@@ -50,15 +75,18 @@ def analizador_lexico(texto):
             if simbolo:
                 fluxo_codigo.append((str(simbolo[1]), '99'))
             else:
-                #TODO VERIFICAR SE A VARIAVEL PODE SER UMA VARIAVEL E SE NAO INFORMAR UM ERRO!!!!
-                tabela_de_simbolos.append((palavra, cont))
-                fluxo_codigo.append(cont, '99')
-                cont += 1
+                if verificar_variavel(palavra):
+                    tabela_de_simbolos.append((palavra, cont))
+                    fluxo_codigo.append((cont, '99'))
+                    cont += 1
+                elif palavra.isdigit():
+                    fluxo_codigo.append((cont, '98'))
+                else:
+                    print("> ERRO LÉXICO!! POR FAVOR VERIFIQUE A PALAVRA: " + palavra)
+                    return
 
-    print("Fluxo de codigo:")
-    print(fluxo_codigo)
+    print("> Gerando Documento de Fluxo Léxico...")
+    gerar_fluxo_lexico(fluxo_codigo)
 
-    print("Tabela de Simbolos:")
-    print(tabela_de_simbolos)
-
-    #TODO Exportar esses prints como documentos de texto.
+    print("> Gerando Tabela de Simbolos...")
+    gerar_tabela_de_simbolos(tabela_de_simbolos)
