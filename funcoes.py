@@ -81,7 +81,7 @@ def analizador_lexico(texto):
     cont = 0
     aspas = 0
     for palavra in texto:
-        if palavra in tipos:
+        if palavra in tipos and aspas == 0:
             if palavra == '"' and aspas == 0:
                 aspas = 1
             elif palavra == '"' and aspas == 1:
