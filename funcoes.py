@@ -9,9 +9,20 @@ def getAlgoritmo(nome_do_arquivo):
 
 
 def separador(palavra, caractere):
-    i = palavra.find(caractere)
-    palavra_nova = palavra[:i] + ' ' + palavra[i] + ' ' +palavra[i+1:]
-    return palavra_nova
+    index = encontrar_indices(palavra, caractere)
+    cont = 0
+    for i in index:
+        palavra = palavra[:i+cont] + ' ' + palavra[i+cont] + ' ' +palavra[i+cont+1:]
+        cont += 2
+        
+    return palavra
+
+def encontrar_indices(palavra, caractere):
+    indices = []
+    for i in range(len(palavra)):
+        if palavra[i] == caractere:
+            indices.append(i)
+    return indices
 
 
 def separar_texto(lista):
@@ -57,7 +68,8 @@ def gerar_tabela_de_simbolos(tabela):
     arq.close()
 
 def verificar_variavel(palavra):
-    padrao_de_rotulo = r'^[a-z_][A-Za-z]*[0-9]?$'
+    print(palavra)
+    padrao_de_rotulo = r'^[A-Za-z_][A-Za-z]*[0-9]?$'
     if re.match(padrao_de_rotulo, palavra):
         return True
     else:
@@ -67,23 +79,32 @@ def analizador_lexico(texto):
     fluxo_codigo = []
     tabela_de_simbolos = []
     cont = 0
+    aspas = 0
     for palavra in texto:
         if palavra in tipos:
+            if palavra == '"' and aspas == 0:
+                aspas = 1
+            elif palavra == '"' and aspas == 1:
+                aspas = 0
+
             fluxo_codigo.append((palavra, tipos[palavra]))
         else:
-            simbolo = get_simbolo(tabela_de_simbolos, palavra)
-            if simbolo:
-                fluxo_codigo.append((str(simbolo[1]), '99'))
+            if aspas == 1:
+                fluxo_codigo.append((palavra, '97'))
             else:
-                if verificar_variavel(palavra):
-                    tabela_de_simbolos.append((palavra, cont))
-                    fluxo_codigo.append((cont, '99'))
-                    cont += 1
-                elif palavra.isdigit():
-                    fluxo_codigo.append((cont, '98'))
+                simbolo = get_simbolo(tabela_de_simbolos, palavra)
+                if simbolo:
+                    fluxo_codigo.append((str(simbolo[1]), '99'))
                 else:
-                    print("> ERRO LÉXICO!! POR FAVOR VERIFIQUE A PALAVRA: " + palavra)
-                    return
+                    if verificar_variavel(palavra):
+                        tabela_de_simbolos.append((palavra, cont))
+                        fluxo_codigo.append((cont, '99'))
+                        cont += 1
+                    elif palavra.isdigit():
+                        fluxo_codigo.append((cont, '98'))
+                    else:
+                        print("> ERRO LÉXICO!! POR FAVOR VERIFIQUE A PALAVRA: " + palavra)
+                        return
 
     print("> Gerando Documento de Fluxo Léxico...")
     gerar_fluxo_lexico(fluxo_codigo)

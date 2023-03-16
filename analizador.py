@@ -5,7 +5,6 @@ from funcoes import getAlgoritmo, analizador_lexico, separar_texto
 texto = getAlgoritmo('racobaldo.txt')       # Pegando o texto do algoritmo
 texto = texto.split()                       # Separando a string e transformando em Lista
 texto = separar_texto(texto)                # Limpando a lista dos caracteres especiais
-texto = separar_texto(texto)                # Segunda mão de limpeza
 analizador_lexico(texto)                    # Aqui é onde a magica acontece  >:)
 
 
