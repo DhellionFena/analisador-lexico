@@ -1,4 +1,4 @@
-from funcoes import getAlgoritmo, analizador_lexico, separar_texto
+from funcoes import getAlgoritmo, analisador_lexico, separar_texto
 
 # AQUI É A MAIN DO NOSSO PROGRAMA
 
