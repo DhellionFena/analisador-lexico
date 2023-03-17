@@ -75,7 +75,7 @@ def verificar_variavel(palavra):
     else:
         return False
 
-def analizador_lexico(texto):
+def analisador_lexico(texto):
     fluxo_codigo = []
     tabela_de_simbolos = []
     cont = 0
