@@ -1,0 +1,31 @@
+<expressao> >>>	<declaracao> | <atribuicao> | <condicional> | <loop> | <imprimir>
+<declaracao> >>>	<tipo> <variavel> 04
+<tipo> >>>	01 | 03
+<variavel> >>>	99
+<atribuicao> >>>	<variavel> 05 <entrada>
+<entrada> >>>	<expressaoaritimetica> 04 | 20 <string> 20 04
+<expressaoaritimetica> >>>	<termo><expressaoaritmetica'>
+<expressaoaritimetica'> >>>	<somaousub><expressaoaritmetica'> | vazio
+<somaousub> >>>	06 <termo> | 07 <termo>
+<termo> >>>	<fator><termo'>
+<termo'> >>>	<multoudiv><termo'> | vazio
+<multoudiv> >>>	08 <fator> |  09 <fator>
+<fator> >>>	<valor> | 17 <expressaoaritimetica> 18
+<condicional> >>>	13 17 <comparacao> 18 27 <escopo> 28 <condicionalInverso>
+<condicionalinverso> >>>	<vazio> | 15 <condicionalinversoescopo>
+<condicionalinversoescopo> >>>	27 <escopo> 28 |  <condicional>
+<comparacao> >>>	<expressaologica>
+<sinalcomparacao> >>>	05 05 | 10 <sinalcomparacaoigual> | 11 <sinalcomparacaoigual> | 12 05
+<sinalcomparacaoigual> >>>	vazio | 05
+<valor> >>>	<variavel> | 98
+<expressaologica> >>>	<comparador><expressaologica'> | 12<expressaologica'>
+<expressaologica'> >>>	 <ANDouOR><expressaologica'> | vazio
+<ANDouOR> >>>	25 25 <expressaologica> |  24 24 <expressaologica>
+<comparador> >>>	<expressaoaritimetica> <sinalcomparacao> <expressaoaritimetica>
+<escopo> >>>	<expressao> | vazio
+<loop> >>>	21 17 <variavel> 04 <comparacao> 04 <pulo> 18 27 <escopo> 28
+<pulo> >>>	<variavel> <sinal> 05 <valor>
+<sinal> >>>	06 | 07 | 08 | 09
+<imprimir> >>>	19  <stringnum>
+<stringnum> >>>	20 <string> 20 04 |  <valor> 04
+<string> >>>	97 <string> | vazio

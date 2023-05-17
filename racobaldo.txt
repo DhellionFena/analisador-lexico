@@ -1,19 +1,22 @@
 numerico A;
 numerico B;
-caracter i;
-vetor lista;
+numerico C;
+string i;
 
+i = "Nome";
 A = 10;
 B = A+5;
 
-se (B >= 15) entao
-    escreva A + B;
-senao
-    escreva "B eh menor que 15.";
-fimse
+se (B >= 15) {
+    
+    C = A + B;
+    escreva C;
+}
+senao {
+    escreva i;
+    escreva " eh menor que 15.";
+}
 
-para cada i em lista faca
-
+para (A; A <= 10; A+=1) {
     escreva "oi";
-
-fimpara
+}
