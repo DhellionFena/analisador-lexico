@@ -20,3 +20,5 @@ senao {
 para (A; A <= 10; A+=1) {
     escreva "oi";
 }
+
+

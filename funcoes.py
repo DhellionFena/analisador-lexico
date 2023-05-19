@@ -171,12 +171,6 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             ('98', '<expressaologica>'),
             ('99', '<expressaologica>')
         ],
-        # '<sinalcomparacaoigual>': [
-        #     ('05', '05'),
-        #     ('17', 'vazio'),
-        #     ('98', 'vazio'),
-        #     ('99', 'vazio')
-        # ],
         '<sinalcomparacao>': [
             ('05', '05 05'),
             ('10', '10 05'),

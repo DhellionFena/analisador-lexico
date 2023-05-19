@@ -1,22 +1,10 @@
 numerico A;
-numerico B;
-numerico C;
-string i;
 
 i = "Nome";
 A = 10;
 B = A+5;
 
-se (B >= 15) {
-    
-    C = A + B;
-    escreva C;
-}
-senao {
-    escreva i;
-    escreva " eh menor que 15.";
-}
-
-para (A; A <= 10; A+=1) {
+par (A; A <= 10; A+=1) {
     escreva "oi";
 }
+
