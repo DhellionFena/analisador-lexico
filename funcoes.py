@@ -2,6 +2,7 @@ from tipos import tipos
 import re
 import os
 
+# Função para ler o .txt
 def getAlgoritmo(nome_do_arquivo):
     with open(nome_do_arquivo, 'r', encoding='utf-8') as arq:
         texto = arq.read()
@@ -9,6 +10,7 @@ def getAlgoritmo(nome_do_arquivo):
     return texto
 
 
+# Função que pertence ao separador de texto e separa as palavras dos caracteres especiais com espaços
 def separador(palavra, caractere):
     index = encontrar_indices(palavra, caractere)
     cont = 0
@@ -18,6 +20,7 @@ def separador(palavra, caractere):
         
     return palavra
 
+# Função para encontrar o indice dos caracteres especiais
 def encontrar_indices(palavra, caractere):
     indices = []
     for i in range(len(palavra)):
@@ -26,6 +29,7 @@ def encontrar_indices(palavra, caractere):
     return indices
 
 
+# Função que separa as palavras dos caracteres especiais
 def separar_texto(lista):
     caracteres = [
                 ';', '"', '(', ')', '.', '>',  '<',  '~', '=', '+', '-',
@@ -45,19 +49,21 @@ def separar_texto(lista):
 
     return texto_separado
 
+# Função que realiza uma busca na tabela de símbolos a partir do nome
 def get_simbolo(tabela_de_simbolos, simbolo):
-
     for s in tabela_de_simbolos:
         if s['nome'] == simbolo:
             return (s)
     return None
 
+# Função que realiza uma busca na tabela de símbolos a partir da chave/ID
 def get_simbolo_chave(tabela_de_simbolos, chave):
     for s in tabela_de_simbolos:
         if s['chave'] == chave:
             return (s)
     return None
 
+# Função que cria um txt do fluxo de tokens do analizador léxico
 def gerar_fluxo_lexico(fluxo):
     arq = open("fluxo_lexico.txt", "w")
 
@@ -66,6 +72,7 @@ def gerar_fluxo_lexico(fluxo):
     
     arq.close()
 
+# Função que cria um csv da tabela de simbolos
 def gerar_tabela_de_simbolos(tabela):
     arq = open("tabela_de_simbolos.csv", "w")
 
@@ -75,6 +82,7 @@ def gerar_tabela_de_simbolos(tabela):
     
     arq.close()
 
+# Função que verifica se a palavra/rótulo pertence a linguagem.
 def verificar_variavel(palavra):
     print(palavra)
     padrao_de_rotulo = r'^[A-Za-z_][A-Za-z]*[0-9]?$'
@@ -83,6 +91,7 @@ def verificar_variavel(palavra):
     else:
         return False
 
+# Função que guarda a Árvore Sintática e realiza a produção do respectivo gerador
 def verificar_gramatica(entrada, gerador='<expressao>'):
     gramatica = {
         '<expressao>': [
@@ -278,13 +287,13 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             return producao[1]
     return False
     
+# Função que compara os tipos de atribuição e retorna a compatibilidade
 def match_tipo(simbolo_tipo, atribuicao):
-    # print(f"Comparando simbolo de tipo {simbolo_tipo} com atribuicao de tipo {atribuicao}")
-    # os.system("pause")
     if simbolo_tipo == atribuicao:
         return True
     return False
 
+# Função que retorna o tipo do token solicitado
 def get_tipo(token, tabela_de_simbolos):
     if token[1] == '97':
         return '03'
@@ -294,55 +303,72 @@ def get_tipo(token, tabela_de_simbolos):
         tipo = get_simbolo_chave(tabela_de_simbolos, token[0])
         return tipo['tipo']
 
+# Função principal que coordena as análises sintáticas do compilador
 def analisador_sintatico(tokens, tabela_de_simbolos):
+    # Pilha de geradores e de produção.
     pilha = ['<expressao>']
-    entrada = []
-    tipo_simbolo = ''
+
+    # Pilha de entrada dos tokens para serem analisados
+    entrada = []                
+
+    # (SEMÂNTICO) tipo do rótulo para realizar análise de atribuição
+    tipo_simbolo = ''     
+
+    # (SEMÂNTICO) registra se está dentro de um Loop   
     isPara = False
+
+    # (SEMÂNTICO) Estado de alerta para comparação semantica de tipos
     esperar_proximo = False
+
+    # Lógica de análise sintática
     for token in tokens:
         entrada.append(token)
         while len(entrada) > 0:
-            print(f"-=-=-=-= VERIFICANDO A PALAVRA {token[0]} -=-=-=-=")
-            print(pilha)
-            print("ENTRADA: ", entrada)
-            print()
             
             if len(pilha) == 0:
                 pilha = ['<expressao>']
 
             if pilha[0].isnumeric():
+                # Retirando da pilha o terminal gerado pela produção
                 saida = pilha.pop(0)
+
                 if saida == entrada[0][1]:
 
+                    # (SEMÂNTICO) Registra se está dentro de um LOOP
                     if saida == '21':
                         isPara = True
 
+                    # (SEMÂNTICO) Analisa se BREAK; está dentro do escopo do LOOP
                     if saida == '29':
                         if not isPara:
                             print("ERRO SEMANTICO!! Função break pode estar apenas em loops.")
                             return
-                    
+                
+                    # (SEMÂNTICO) Reseta o registro após sair de escopo.
                     if saida == '28':
                         isPara = False
 
+                    # (SEMÂNTICO) Comparador de TIPOS
                     if saida == '99':
                             simb = get_simbolo_chave(tabela_de_simbolos, entrada[0][0])
                             tipo_simbolo = simb['tipo']
 
                     if saida == '05':
+                        # (SEMÂNTICO) Ativa o estado de alerta para comparar o TIPO
                         esperar_proximo = True
                     elif saida == '20':
+                        #(SEMÂNTICO) Ignora as aspas
                         pass
                     elif esperar_proximo:
+                        # (SEMÂNTICO) Realiza a comparação de tipos.
                         esperar_proximo = False
-                        print("Entrada: ", entrada[0])
                         valor = get_tipo(entrada[0], tabela_de_simbolos)
                         if not match_tipo(tipo_simbolo, valor):
                             print("ERRO SEMANTICO!! Tipos não compatíveis.")
                             return
 
                     if saida == '04':
+                        # (SEMÂNTICO) Reseta o registro após fim de linha.
                         tipo_simbolo = None
                     entrada.pop()
 
@@ -354,30 +380,35 @@ def analisador_sintatico(tokens, tabela_de_simbolos):
                 pilha.pop(0)
             else:
                 producao = verificar_gramatica(entrada[0][1], pilha[0])
-                # print("ENTRADA DE DADOS: ", entrada)
                 if producao:
-                    print(f"Encontrei o gerador {pilha[0]} e produzi '{producao}'")
                     producao = producao.split()
                     saida = pilha.pop(0)
-                    print('retirando da pilha: ', saida)
                     if saida != entrada[0][1]:
                         producao.reverse()
                         for item in producao:
-                            print('inserindo na pilha: ', item)
                             pilha.insert(0, item)
                     else:
                         entrada.pop()
     print("Nenhum erro de sintaxe, parabens!! :D")
 
 
+# Função principal que coordena as análises léxicas do compilador
 def analisador_lexico(texto):
     fluxo_codigo = []
     tabela_de_simbolos = []
+
+    # ID / chave dos simbolos
     cont = 0
+
     aspas = 0
+
+    # (SEMÂNTICO) Avisa o tipo do rótulo para ser guardado na tabela de simbolos.
     eh_numerico = False
     eh_string = False
+
+    # (SEMÂNTICO) Analisa se entrou no campo de declaração de variáveis
     declaracao = False
+
     for palavra in texto:
         if palavra in tipos:
             if palavra == '"' and aspas == 0:
@@ -385,16 +416,17 @@ def analisador_lexico(texto):
             elif palavra == '"' and aspas == 1:
                 aspas = 0
 
-            # VERIFICAR SE É STRING OU NUMERO
+            # (SEMÂNTICO) Verifica se é string ou número
             if palavra == "numerico":
                 eh_numerico = True
-
-            if palavra == "string":
+            elif palavra == "string":
                 eh_string = True
 
+            # (SEMÂNTICO) Entrou no campo de declaração de variáveis
             if palavra == "declarar":
                 declaracao = True
-                
+            
+            # (SEMÂNTICO) Reseta o registro após sair de escopo
             if palavra == "}":
                 declaracao = False
 
@@ -408,7 +440,9 @@ def analisador_lexico(texto):
                     fluxo_codigo.append((str(simbolo['chave']), '99'))
                 else:
                         if verificar_variavel(palavra):
+                            # (SEMÂNTICO) Verifica se está no campo de declaração de variáveis
                             if declaracao:
+                                # (SEMÂNTICO) Criação de simbolo com base no nome do rotulo, ID e TIPO
                                 simb = {
                                     'nome': palavra,
                                     'chave': str(cont),
