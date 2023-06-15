@@ -1,5 +1,6 @@
 from tipos import tipos
 import re
+import os
 
 def getAlgoritmo(nome_do_arquivo):
     with open(nome_do_arquivo, 'r', encoding='utf-8') as arq:
@@ -45,9 +46,16 @@ def separar_texto(lista):
     return texto_separado
 
 def get_simbolo(tabela_de_simbolos, simbolo):
+
     for s in tabela_de_simbolos:
-        if s[0] == simbolo:
-            return (s[0], s[1])
+        if s['nome'] == simbolo:
+            return (s)
+    return None
+
+def get_simbolo_chave(tabela_de_simbolos, chave):
+    for s in tabela_de_simbolos:
+        if s['chave'] == chave:
+            return (s)
     return None
 
 def gerar_fluxo_lexico(fluxo):
@@ -61,9 +69,9 @@ def gerar_fluxo_lexico(fluxo):
 def gerar_tabela_de_simbolos(tabela):
     arq = open("tabela_de_simbolos.csv", "w")
 
-    arq.write("nome;chave\n")
+    arq.write("nome;chave;tipo\n")
     for item in tabela:
-        arq.write(f"{item[0]};{item[1]}\n")
+        arq.write(f"{item['nome']};{item['chave']};{item['tipo']}\n")
     
     arq.close()
 
@@ -78,16 +86,30 @@ def verificar_variavel(palavra):
 def verificar_gramatica(entrada, gerador='<expressao>'):
     gramatica = {
         '<expressao>': [
-            ('01', '<declaracao>'),
-            ('03', '<declaracao>'),
+            ('30', '<declarar>'),
             ('13', '<condicional>'),
             ('21', '<loop>'),
             ('19', '<imprimir>'),
+            ('29', '<break>'),
             ('99', '<atribuicao>')
         ],
         '<declaracao>': [
             ('01', '<tipo> <variavel> 04'),
             ('03', '<tipo> <variavel> 04'),
+        ],
+        '<declaracaolinha>': [
+            ('01', '<declaracao> <declaracaolinha>'),
+            ('03', '<declaracao> <declaracaolinha>'),
+            ('28', 'vazio'),
+            ('10', 'vazio'),
+            ('11', 'vazio'),
+            ('12', 'vazio'),
+            ('18', 'vazio'),
+            ('24', 'vazio'),
+            ('25', 'vazio'),
+            ('99', 'vazio'),
+            ('04', 'vazio'),
+            ('05', 'vazio'),
         ],
         '<tipo>': [
             ('01', '01'),
@@ -116,6 +138,7 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             ('18', 'vazio'),
             ('24', 'vazio'),
             ('25', 'vazio'),
+            ('99', 'vazio'),
         ],
         '<expressaoaritimetica>': [
             ('17', '<termo> <expressaoaritimeticalinha>'),
@@ -139,6 +162,7 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             ('18', 'vazio'),
             ('24', 'vazio'),
             ('25', 'vazio'),
+            ('99', 'vazio'),
         ],
         '<multoudiv>': [
             ('08', '08 <fator>'),
@@ -155,7 +179,11 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             ('99', '<valor>'),
         ],
         '<condicional>': [
-            ('13', '13 17 <comparacao> 18 27 <escopo> 28 <condicionalinverso>')
+            ('13', '13 17 <comparacao> 18 27 <escopo> <condicionallinha>'),
+            # ('13', '13 17 <comparacao> 18 27 <escopo> 28 <condicionalinverso>'),
+        ],
+        '<condicionallinha>': [
+            ('28', '28 <condicionalinverso>'),
         ],
         '<condicionalinversoescopo>': [
             ('13', '<condicional>'),
@@ -163,7 +191,7 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
         ],
         '<condicionalinverso>': [
             ('15', '15 <condicionalinversoescopo>'),
-            ('$', 'vazio')
+            ('$', 'vazio'),
         ],
         '<comparacao>': [
             ('12', '<expressaologica>'),
@@ -206,9 +234,11 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             ('01', '<expressao> <escopo>'),
             ('03', '<expressao> <escopo>'),
             ('13', '<expressao> <escopo>'),
+            ('15', 'vazio'),
             ('19', '<expressao> <escopo>'),
             ('21', '<expressao> <escopo>'),
             ('28', 'vazio'),
+            ('29', '<expressao> <escopo>'),
             ('99', '<expressao> <escopo>')
         ],
         '<loop>': [
@@ -231,6 +261,12 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
         '<imprimir>': [
             ('19', '19 <stringnum>')
         ],
+        '<break>': [
+            ('29', '29 04')
+        ],
+        '<declarar>': [
+            ('30', '30 27 <declaracaolinha> 28')
+        ],
         '<string>': [
             ('20', 'vazio'),
             ('97', '97 <string>'),
@@ -242,15 +278,34 @@ def verificar_gramatica(entrada, gerador='<expressao>'):
             return producao[1]
     return False
     
+def match_tipo(simbolo_tipo, atribuicao):
+    # print(f"Comparando simbolo de tipo {simbolo_tipo} com atribuicao de tipo {atribuicao}")
+    # os.system("pause")
+    if simbolo_tipo == atribuicao:
+        return True
+    return False
 
-def analisador_sintatico(tokens):
+def get_tipo(token, tabela_de_simbolos):
+    if token[1] == '97':
+        return '03'
+    if token[1] == '98':
+        return '01'
+    if token[1] == '99':
+        tipo = get_simbolo_chave(tabela_de_simbolos, token[0])
+        return tipo['tipo']
+
+def analisador_sintatico(tokens, tabela_de_simbolos):
     pilha = ['<expressao>']
     entrada = []
+    tipo_simbolo = ''
+    isPara = False
+    esperar_proximo = False
     for token in tokens:
-        entrada.append(token[1])
+        entrada.append(token)
         while len(entrada) > 0:
             print(f"-=-=-=-= VERIFICANDO A PALAVRA {token[0]} -=-=-=-=")
             print(pilha)
+            print("ENTRADA: ", entrada)
             print()
             
             if len(pilha) == 0:
@@ -258,22 +313,54 @@ def analisador_sintatico(tokens):
 
             if pilha[0].isnumeric():
                 saida = pilha.pop(0)
-                if saida == entrada[0]:
+                if saida == entrada[0][1]:
+
+                    if saida == '21':
+                        isPara = True
+
+                    if saida == '29':
+                        if not isPara:
+                            print("ERRO SEMANTICO!! Função break pode estar apenas em loops.")
+                            return
+                    
+                    if saida == '28':
+                        isPara = False
+
+                    if saida == '99':
+                            simb = get_simbolo_chave(tabela_de_simbolos, entrada[0][0])
+                            tipo_simbolo = simb['tipo']
+
+                    if saida == '05':
+                        esperar_proximo = True
+                    elif saida == '20':
+                        pass
+                    elif esperar_proximo:
+                        esperar_proximo = False
+                        print("Entrada: ", entrada[0])
+                        valor = get_tipo(entrada[0], tabela_de_simbolos)
+                        if not match_tipo(tipo_simbolo, valor):
+                            print("ERRO SEMANTICO!! Tipos não compatíveis.")
+                            return
+
+                    if saida == '04':
+                        tipo_simbolo = None
                     entrada.pop()
+
                 else:
-                    print(f"ERRO DE SINTAXE!!! Recebeu: {saida}, Esperava: {entrada[0]}.")
+                    print(f"ERRO DE SINTAXE!!! Recebeu: {entrada[0]}, Esperava: {saida}.")
                     return
+
             elif pilha[0] == 'vazio':
                 pilha.pop(0)
             else:
-                producao = verificar_gramatica(entrada[0], pilha[0])
+                producao = verificar_gramatica(entrada[0][1], pilha[0])
+                # print("ENTRADA DE DADOS: ", entrada)
                 if producao:
                     print(f"Encontrei o gerador {pilha[0]} e produzi '{producao}'")
                     producao = producao.split()
                     saida = pilha.pop(0)
                     print('retirando da pilha: ', saida)
-
-                    if saida != entrada[0]:
+                    if saida != entrada[0][1]:
                         producao.reverse()
                         for item in producao:
                             print('inserindo na pilha: ', item)
@@ -288,12 +375,28 @@ def analisador_lexico(texto):
     tabela_de_simbolos = []
     cont = 0
     aspas = 0
+    eh_numerico = False
+    eh_string = False
+    declaracao = False
     for palavra in texto:
         if palavra in tipos:
             if palavra == '"' and aspas == 0:
                 aspas = 1
             elif palavra == '"' and aspas == 1:
                 aspas = 0
+
+            # VERIFICAR SE É STRING OU NUMERO
+            if palavra == "numerico":
+                eh_numerico = True
+
+            if palavra == "string":
+                eh_string = True
+
+            if palavra == "declarar":
+                declaracao = True
+                
+            if palavra == "}":
+                declaracao = False
 
             fluxo_codigo.append((palavra, tipos[palavra]))
         else:
@@ -302,17 +405,28 @@ def analisador_lexico(texto):
             else:
                 simbolo = get_simbolo(tabela_de_simbolos, palavra)
                 if simbolo:
-                    fluxo_codigo.append((str(simbolo[1]), '99'))
+                    fluxo_codigo.append((str(simbolo['chave']), '99'))
                 else:
-                    if verificar_variavel(palavra):
-                        tabela_de_simbolos.append((palavra, cont))
-                        fluxo_codigo.append((cont, '99'))
-                        cont += 1
-                    elif palavra.isnumeric():
-                        fluxo_codigo.append((palavra, '98'))
-                    else:
-                        print("> ERRO LÉXICO!! POR FAVOR VERIFIQUE A PALAVRA: " + palavra)
-                        return
+                        if verificar_variavel(palavra):
+                            if declaracao:
+                                simb = {
+                                    'nome': palavra,
+                                    'chave': str(cont),
+                                    'tipo': "01" if eh_numerico else "03"
+                                }
+                                eh_numerico = False
+                                tabela_de_simbolos.append(simb)
+                                fluxo_codigo.append((str(cont), '99'))
+                                cont += 1
+                            else:
+                                print("> ERRO SEMANTICO!! Variavel <" + palavra + "> não foi delcarada no campo de declaração.")
+                                return
+                        elif palavra.isnumeric():
+                            fluxo_codigo.append((palavra, '98'))
+                        else:
+                            print("> ERRO LÉXICO!! POR FAVOR VERIFIQUE A PALAVRA: " + palavra)
+                            return
+                    
 
     print("> Gerando Documento de Fluxo de Tokens...")
     gerar_fluxo_lexico(fluxo_codigo)
@@ -320,4 +434,4 @@ def analisador_lexico(texto):
     print("> Gerando Tabela de Simbolos...")
     gerar_tabela_de_simbolos(tabela_de_simbolos)
 
-    return fluxo_codigo
+    return fluxo_codigo, tabela_de_simbolos

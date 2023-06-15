@@ -2,9 +2,9 @@ numerico A;
 
 i = "Nome";
 A = 10;
-B = A+5;
+B = A+5
 
-par (A; A <= 10; A+=1) {
+para (A; A <= 10; A+=1) {
     escreva "oi";
 }
 

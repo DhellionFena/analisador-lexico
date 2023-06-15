@@ -1,4 +1,3 @@
-#TODO: Adicionar TODAS AS PALAVRAS CHAVES faltantes
 tipos = {
     "numerico": "01",        # atribuição de tipo
     "string": "03",        # atribuição de tipo
@@ -18,12 +17,14 @@ tipos = {
     "escreva": "19",    # funcao de escrita
     '"': "20",          # aspas (go LOUD)
     'para': "21",       # inicio de loop
-    "|": "24",          # abertura de conteudo
-    "&": "25",          # abertura de conteudo
+    "|": "24",          # OR
+    "&": "25",          # AND
     "{": "27",          # abertura de conteudo
     "}": "28",          # encerramento de conteudo
+    "break": "29",      # quebra de loop
+    "declarar": "30",   # local de agrupamento de variaveis
 }
-
 # 99 PARA ROTULOS
 # 98 PARA NUMEROS
 # 97 PARA STRINGS
+
